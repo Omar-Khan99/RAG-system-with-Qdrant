@@ -1,6 +1,6 @@
 import ollama
 from typing import Any, List, Dict
-from services import QdrantDocumentStore
+from services.document_store import QdrantDocumentStore
 
 class RAGService:
     def __init__(self, document_store: QdrantDocumentStore):

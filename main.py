@@ -1,9 +1,9 @@
 # src/main.py
 from fastapi import FastAPI, Query, HTTPException
-from src.api.routes import router
-from src.services.RAG_service import RAGService
-from src.config.settings import settings
-from services import QdrantDocumentStore
+from api.routes import router
+from services.RAG_service import RAGService
+from config.settings import settings
+from services.document_store import QdrantDocumentStore
 app = FastAPI(
     title="Qdrant Document Search System",
     description="A sophisticated document search and management system using Qdrant vector database",
@@ -13,7 +13,7 @@ app = FastAPI(
 )
 
 
-doc_store = QdrantDocumentStore(collection_name='documents')
+doc_store = QdrantDocumentStore()
 rag_service = RAGService(doc_store)
 # تضمين routes
 app.include_router(router, prefix="/api/v1")

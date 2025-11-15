@@ -2,7 +2,7 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from .document_processor import DocumentProcessor
-from src.config.settings import settings
+from config.settings import settings
 from typing import List, Dict, Any
 import os
 import hashlib

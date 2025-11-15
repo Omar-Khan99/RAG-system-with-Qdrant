@@ -5,11 +5,11 @@ from typing import Optional
 import os
 from datetime import datetime
 
-from src.services.document_store import QdrantDocumentStore
+from services.document_store import QdrantDocumentStore
 
 
 router = APIRouter()
-doc_store = QdrantDocumentStore(collection_name='documents')
+doc_store = QdrantDocumentStore()
 
 
 @router.post("/upload-file/")
