@@ -1,32 +1,6 @@
-# Python
-__pycache__/
-*.py[cod]
-*.pyo
-*.pyd
-*.pytest_cache/
-.pytest_cache/
-htmlcov/
-.coverage
-.coverage.*
-
-# Virtual envs
 .venv/
-env/
-venv/
-
-# Editor / OS
-.vscode/
-.idea/
-.DS_Store
-*.swp
-
-# dotenv
+.git
+__pycache__/
+*.pyc
 .env
-.env.*.local
-
-# mypy
-.mypy_cache/
-
-# uv
-# لا تضف uv.lock هنا — نريد حفظه في الريبو لضمان reproducible installs
-
+.dockerignore

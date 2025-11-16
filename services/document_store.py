@@ -6,6 +6,8 @@ from config.settings import settings
 from typing import List, Dict, Any
 import os
 import hashlib
+from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http import models as rest
 
 class QdrantDocumentStore:
     def __init__(self):
@@ -18,18 +20,19 @@ class QdrantDocumentStore:
         self._ensure_collection()
     
     def _ensure_collection(self):
-        """إنشاء المجموعة إذا لم تكن موجودة"""
         try:
             self.client.get_collection(self.collection_name)
-        except Exception:
+            print(f"Collection '{self.collection_name}' already exists.")
+        except (UnexpectedResponse, ValueError):
+            # لم تُوجد → ننشئها
             self.client.create_collection(
                 collection_name=self.collection_name,
-                vectors_config=VectorParams(
-                    size=self.doc_processor.model.get_sentence_embedding_dimension(),
-                    distance=Distance.COSINE
+                vectors_config=rest.VectorParams(
+                    size=384,  # حسب نموذج الـ embedding
+                    distance=rest.Distance.COSINE,
                 ),
             )
-            print(f"Collection '{self.collection_name}' created")
+            print(f"Collection '{self.collection_name}' created.")
     
     def _generate_point_id(self, file_path: str, chunk_id: int) -> int:
         """إنشاء معرف فريد للنقطة"""
