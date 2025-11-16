@@ -1,111 +1,98 @@
-🧠 RAG System with Qdrant
-=========================
+# 🧠 RAG System with Qdrant & Ollama
 
-This project implements a **Retrieval-Augmented Generation (RAG)** system using **Qdrant** as the vector database and **FastAPI** as the backend.It allows users to query a large knowledge base and retrieve semantically relevant chunks of information before generating responses using a language model.
+A production-ready **Retrieval-Augmented Generation (RAG)** system built with:
+- **Qdrant** — high-performance vector database  
+- **Ollama** — local LLM & embedding inference  
+- **FastAPI** — modern REST API backend  
+- **Docker Compose** — fully containerized, reproducible deployment
 
-🚀 Features
------------
+✅ **Fully working out-of-the-box** — models & data persist between restarts.
 
-*   **RAG Architecture:** Combines vector search with LLM inference for accurate, context-aware responses.
-    
-*   **Qdrant Integration:** Efficient and scalable vector similarity search.
-    
-*   **FastAPI Backend:** Lightweight and high-performance API framework.
-    
-*   **Dockerized Environment:** Ready-to-run setup for both development and production.
-    
-*   **uv-based Dependency Management:** Ultra-fast Python package manager for modern environments.
-    
+---
 
-⚙️ Prerequisites
-----------------
+## 🚀 Features
 
-Before running the project, make sure you have the following installed:
+- ✅ **True offline RAG**: Runs 100% locally using Ollama (no cloud APIs)
+- ✅ **Persistent storage**: Qdrant data + Ollama models survive restarts
+- ✅ **Semantic search + LLM generation** in one pipeline
+- ✅ **Hot-reload** for development (`--reload`)
+- ✅ **Docker-first design** — no Python/env setup needed on host
+- ✅ Optimized with `uv` for ultra-fast dependency resolution & locking
 
-*   [Docker](https://www.docker.com/)
-    
-*   [Docker Compose](https://docs.docker.com/compose/)
-    
-*   (Optional for local dev) [uv](https://docs.astral.sh/uv/?utm_source=chatgpt.com)
-    
+---
 
-🧰 Local Development Setup (Using uv)
--------------------------------------
+## ⚙️ Prerequisites
 
-If you want to run the app locally (without Docker):
+Install these **once** on your machine:
 
+| Tool | Purpose | Install Guide |
+|------|---------|---------------|
+| 🐳 **Docker** | Container runtime | [docker.com](https://www.docker.com/products/docker-desktop) |
+| 🐳 **Docker Compose** | Multi-container orchestration | Included in Docker Desktop (v2.20+) |
 
-``` bash 
-# Install uv if not installed  
-curl -LsSf https://astral.sh/uv/install.sh | sh  
+> ✅ No Python, `uv`, or Ollama installation needed on your host OS — everything runs in containers.
 
-# Sync dependencies  
-uv sync --locked  
+---
 
-# Run the FastAPI app  
-uv run uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload   
- ```
+## ▶️ Quick Start (Recommended)
 
-Then open your browser at 👉 http://localhost:8000/docs
-
-🐳 Running with Docker
-----------------------
-
-### 1️⃣ Build and start the containers
-
+### 1. Clone & enter the project
 ``` bash
-docker-compose up --build
-```
-This will:
-
-*   Start a **Qdrant** container (vector DB).
-    
-*   Build and start the **FastAPI app**.
-    
-*   Expose the API on http://localhost:8000.
-    
-
-### 2️⃣ Stop the containers
-
-```  bash 
-docker-compose down   
+git clone https://github.com/Omar-Khan99/RAG-system-with-Qdrant.git
+cd RAG-system-with-Qdrant
 ```
 
-🧠 How It Works
----------------
+### 2. Start the system (first run = downloads models)
+``` bash
+docker compose up --build
+```
+⏳ First run takes time (downloads `all-minilm:l6-v2` + `llama3:8b` ~5GB), but subsequent runs are instant.
 
-1.  **Data Ingestion:** Text documents are embedded into vector representations using an embedding model and stored in Qdrant.
-    
-2.  **Retrieval:** When a user sends a query, the system retrieves the most relevant documents from Qdrant using vector similarity search.
-    
-3.  **Generation:** The retrieved context is fed into a large language model (LLM) to generate an informed, context-aware response.
-    
+### 3. Use the API
+Once you see:
 
-🧩 Useful Commands
-------------------
-
-``` bash 
-# Sync dependencies  
-uv sync --locked  
-
-# Run FastAPI app  
-uv run uvicorn src.main:app --reload  
-
-# Rebuild Docker images  
-docker-compose build  
-
-# Start Qdrant only  
-docker-compose up qdrant  
+```
+ollama-1  | ✅ Models ready. Keeping server running...
+app-1     | INFO:     Uvicorn running on http://0.0.0.0:8000
 ```
 
+Open in your browser:
 
-🛠 Future Improvements
-----------------------
+🔹 [Swagger UI (interactive docs)](http://localhost:8000/docs) 
 
-*   Add frontend dashboard for querying.
-    
-*   Integrate advanced embedding models (OpenAI, SentenceTransformers, etc.).
-    
-*   Include caching and metadata filtering in retrieval.
-    
-*   CI/CD pipeline with GitHub Actions.
+ 🔹 [Qdrant Dashboard](http://localhost:6333/dashboard)
+
+---
+
+## 🔁 Daily Workflow (Fast Restart)
+After first setup, use these for quick stop/start without re-downloading:
+
+| COMMAND | DESCRIPTION |
+|------|--------------|
+| `docker compose down` | ✅ **Stop services** (keeps data & models!) |
+| `docker compose up` | ✅ **Restart in <10 seconds** (no rebuild, no redownload) |
+`docker compose up -d` | Run in background (detached mode) |
+`docker compose logs -f app` | Stream app logs only
+
+> "💡 Never use -v with down unless you want to wipe all data/models. "
+
+## 🧪 API Endpoints
+
+| ENDPOINT | METHOD | DESCRIPTION |
+|------|---------|---------------|
+| `/docs`| GET | Interactive API documentation (Swagger UI)
+ |
+| `/api/v1/upload-file/` | POST | Upload PDF/text and index into Qdrant
+ | `/ask` | POST |  Ask questions: `?query=What is Bayanat?&limit=5` |
+  `/api/v1/files/` | GET | List uploaded documents
+
+
+## 🧠 How It Works
+
+1. **Document Upload:** PDF/text → chunked → embedded with `all-minilm:l6-v2` → stored in **Qdrant**
+
+2. **Query:** User question → embedded → top-k similar chunks retrieved from Qdrant
+
+3. **Generation:** Chunks + question → sent to `llama3:8b` via **Ollama** → final answer
+
+> "All models run locally on your machine — no external API calls. "
