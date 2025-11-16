@@ -1,16 +1,17 @@
-import ollama
+from ollama import Client
 from typing import Any, List, Dict
 from services.document_store import QdrantDocumentStore
 
 class RAGService:
     def __init__(self, document_store: QdrantDocumentStore):
+        self.ollama = Client(host="http://ollama:11434")
         self.document_store = document_store
-        self.llm_model = "gpt-oss:20b"
+        self.llm_model = "llama3.1:8b"
         self.embedding_model = 'mahonzhan/all-MiniLM-L6-v2'
 
     def get_embedding(self, text: str) -> List[float]:
         try:
-            response = ollama.embeddings(model= self.embedding_model, prompt= text)
+            response = self.ollama.embeddings(model= self.embedding_model, prompt= text)
             return response["embedding"]
         except Exception as e:
             raise Exception(f"Error getting embedding: {str(e)}")
@@ -55,7 +56,7 @@ class RAGService:
         """
 
         try:
-            response = ollama.generate(model= self.llm_model, prompt=prompt)
+            response = self.ollama.generate(model= self.llm_model, prompt=prompt)
             return response['response']
         except Exception as e:
             raise Exception(f"Error generating response: {str(e)}")

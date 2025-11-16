@@ -41,7 +41,7 @@ async def upload_file(
                     "file_name": file.filename,
                     "file_size": len(content),
                     "chunk_size": chunk_size,
-                    "upload_time": datetime.now()
+                    "upload_time": datetime.now().isoformat()
                 }
             )
         else:
