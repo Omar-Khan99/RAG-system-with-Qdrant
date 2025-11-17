@@ -1,22 +1,27 @@
 # src/services/document_store.py
+import logging
 from qdrant_client import QdrantClient
 from qdrant_client.models import VectorParams, Distance, PointStruct
 from .document_processor import DocumentProcessor
 from config.settings import settings
 from typing import List, Dict, Any
+from .Embedding_service import EmbeddingSrevice
 import os
 import hashlib
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.http import models as rest
 
+logger = logging.getLogger(__name__)
+
 class QdrantDocumentStore:
     def __init__(self):
+        self.embedding = EmbeddingSrevice()
         self.client = QdrantClient(
             host=settings.QDRANT_HOST, 
             port=settings.QDRANT_PORT
         )
         self.collection_name = settings.COLLECTION_NAME
-        self.doc_processor = DocumentProcessor(settings.MODEL_NAME)
+        self.doc_processor = DocumentProcessor()
         self._ensure_collection()
     
     def _ensure_collection(self):
@@ -28,11 +33,11 @@ class QdrantDocumentStore:
             self.client.create_collection(
                 collection_name=self.collection_name,
                 vectors_config=rest.VectorParams(
-                    size=384,  # حسب نموذج الـ embedding
+                    size=self.embedding.get_embedding_dimension(),  # حسب نموذج الـ embedding
                     distance=rest.Distance.COSINE,
                 ),
             )
-            print(f"Collection '{self.collection_name}' created.")
+            logger.info(f"Collection '{self.collection_name}' created.")
     
     def _generate_point_id(self, file_path: str, chunk_id: int) -> int:
         """إنشاء معرف فريد للنقطة"""
@@ -44,7 +49,7 @@ class QdrantDocumentStore:
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"File not found: {file_path}")
         
-        print(f"Processing document: {file_path}")
+        logger.info(f"Processing document: {file_path}")
         
         # استخراج النص من المستند
         text = self.doc_processor.process_document(file_path)
@@ -60,8 +65,8 @@ class QdrantDocumentStore:
         metadata = self.doc_processor.extract_metadata(file_path, full_text)
         
         # توليد التضمينات النصية
-        embeddings = self.doc_processor.model.encode(chunk_texts).tolist()
-        
+        embeddings = [self.embedding.get_embedding(chunk) for chunk in chunk_texts]        
+
         # إعداد النقاط لـ Qdrant
         points = []
         for idx, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
@@ -87,21 +92,21 @@ class QdrantDocumentStore:
             points=points
         )
         
-        print(f"Successfully uploaded {len(points)} chunks from {file_path}")
+        logger.info(f"Successfully uploaded {len(points)} chunks from {file_path}")
         return True
     
     def search_documents(self, query: str, limit: int = 10, score_threshold: float = 0.5):
         """البحث عن محتوى مشابه في المستندات"""
-        query_embedding = self.doc_processor.model.encode([query]).tolist()[0]
+        query_embedding = self.embedding.get_embedding(query)
         
-        search_results = self.client.query_points(
+        search_results = self.client.search(
             collection_name=self.collection_name,
-            query=query_embedding,
+            query_vector=query_embedding,
             with_vectors=True,
             with_payload=True,
             limit=limit,
             score_threshold=score_threshold
-        ).points
+        )
         
         return search_results
     

@@ -9,7 +9,8 @@ class Settings(BaseSettings):
     COLLECTION_NAME: str = os.getenv("COLLECTION_NAME", "documents")
     
     # Model Settings
-    MODEL_NAME: str = os.getenv("MODEL_NAME", "all-MiniLM-L6-v2")
+    MODEL_EMBEDDING_NAME: str = os.getenv("MODEL_EMBEDDING_NAME", "mahonzhan/all-MiniLM-L6-v2")
+    MODEL_NAME: str = os.getenv("MODEL_NAME", "llama3.1:8b")
     
     # Application Settings
     CHUNK_SIZE: int = 500

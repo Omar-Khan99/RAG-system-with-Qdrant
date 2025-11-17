@@ -1,5 +1,5 @@
 # src/services/document_processor.py
-from sentence_transformers import SentenceTransformer
+from ollama import Client
 from docx import Document
 import PyPDF2
 import pandas as pd
@@ -9,8 +9,9 @@ from typing import Dict, Any, List
 import re
 
 class DocumentProcessor:
-    def __init__(self, model_name: str = 'all-MiniLM-L6-v2'):
-        self.model = SentenceTransformer(model_name)
+    def __init__(self):
+        pass
+
     
     def extract_text_from_docx(self, file_path: str) -> str:
         """استخراج النص من ملفات DOCX"""

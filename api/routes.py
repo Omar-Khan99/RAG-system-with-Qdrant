@@ -4,12 +4,13 @@ from fastapi.responses import JSONResponse
 from typing import Optional
 import os
 from datetime import datetime
-
+import logging
 from services.document_store import QdrantDocumentStore
 
 
 router = APIRouter()
 doc_store = QdrantDocumentStore()
+logger = logging.getLogger(__name__)
 
 
 @router.post("/upload-file/")
@@ -30,6 +31,7 @@ async def upload_file(
         # process document
         success = doc_store.upload_document(file_extension,chunk_size)
 
+        logger.info(f"File '{file.filename}' uploaded and processed successfully.")
         # clean up
         os.remove(file.filename)
 
@@ -201,7 +203,7 @@ async def get_file_chunks(
         }
         
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise Exception(f"Error Not found file: {str(e)}")
 
 @router.get("/chunks/{chunk_id}/")
 async def get_chunk_detail(chunk_id: int, file_name: str):

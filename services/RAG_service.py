@@ -1,24 +1,18 @@
 from ollama import Client
 from typing import Any, List, Dict
 from services.document_store import QdrantDocumentStore
+from services.Embedding_service import EmbeddingSrevice
+from config.settings import settings
 
 class RAGService:
-    def __init__(self, document_store: QdrantDocumentStore):
+    def __init__(self, doc_store: QdrantDocumentStore):
+        self.embedding = EmbeddingSrevice()
         self.ollama = Client(host="http://ollama:11434")
-        self.document_store = document_store
-        self.llm_model = "llama3.1:8b"
-        self.embedding_model = 'mahonzhan/all-MiniLM-L6-v2'
-
-    def get_embedding(self, text: str) -> List[float]:
-        try:
-            response = self.ollama.embeddings(model= self.embedding_model, prompt= text)
-            return response["embedding"]
-        except Exception as e:
-            raise Exception(f"Error getting embedding: {str(e)}")
-
+        self.document_store = doc_store
+        self.llm_model = settings.MODEL_NAME
     
     def search_similar_chunks(self, query: str, limit: int = 5) -> List[Dict[str,Any]]:
-        query_embedding = self.get_embedding(query)
+        query_embedding = self.embedding.get_embedding(query)
 
         search_results = self.document_store.client.search(
             collection_name= self.document_store.collection_name,
